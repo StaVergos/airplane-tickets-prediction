@@ -1,26 +1,25 @@
 import io
-import os
 import zipfile
-
 import requests
-from dotenv import load_dotenv
-from minio import MinioClient
+import logging
+
+from src.config import KAGGLE_USERNAME, KAGGLE_KEY, DATASET_URL
+from src.minio import MinioClient
+
+logging.basicConfig(level=logging.INFO)
 
 
 def stream_airline_csv_to_minio() -> str:
-    load_dotenv()
-    user = os.getenv("KAGGLE_USERNAME")
-    
-    key = os.getenv("KAGGLE_KEY")
+    user = KAGGLE_USERNAME
+    key = KAGGLE_KEY
     if not user or not key:
         raise EnvironmentError("Missing KAGGLE_USERNAME or KAGGLE_KEY in environment")
 
     client = MinioClient()
     client.create_bucket()
 
-    dataset = "orvile/airline-market-fare-prediction-data"
-    url = f"https://www.kaggle.com/api/v1/datasets/download/{dataset}"
-    resp = requests.get(url, auth=(user, key), stream=True)
+    dataset_url = DATASET_URL
+    resp = requests.get(dataset_url, auth=(user, key), stream=True)
     resp.raise_for_status()
 
     buf = io.BytesIO()
@@ -33,7 +32,6 @@ def stream_airline_csv_to_minio() -> str:
             if name.lower().endswith(".csv"):
                 with z.open(name) as csvfile:
                     client.upload_fileobj(csvfile, name)
-                    print(f"Uploaded '{name}' to bucket '{client.bucket_name}'.")
                     return name
 
     raise RuntimeError("No CSV file found in the downloaded dataset.")

@@ -11,3 +11,7 @@ wheels/
 
 # Enviromental variables
 .env
+
+# Tools
+.ruff_cache/
+.DS_Store
