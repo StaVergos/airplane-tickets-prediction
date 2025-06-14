@@ -14,6 +14,8 @@ def stream_airline_csv_to_minio() -> str:
     key = KAGGLE_KEY
     if not user or not key:
         raise EnvironmentError("Missing KAGGLE_USERNAME or KAGGLE_KEY in environment")
+    else:
+        logging.info(f"Using Kaggle credentials: {user} : {key}")
 
     client = MinioClient()
     client.create_bucket()
