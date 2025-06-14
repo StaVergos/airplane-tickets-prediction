@@ -63,6 +63,10 @@ class MinioClient:
                     CreateBucketConfiguration={"LocationConstraint": self.region_name},
                 )
                 logger.info(f"Bucket {self.bucket_name} created successfully.")
+            except self.s3.exceptions.BucketAlreadyOwnedByYou:
+                logger.info(
+                    f"Bucket {self.bucket_name} already owned by you; skipping creation."
+                )
             except Exception as e:
                 logger.error(f"Failed to create bucket {self.bucket_name}: {e}")
                 raise
