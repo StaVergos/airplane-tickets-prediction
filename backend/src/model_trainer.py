@@ -11,52 +11,53 @@ from sklearn.preprocessing import OneHotEncoder
 
 from src.minio import MinioClient
 from src.config import FILENAME, MODEL_FILENAME
-from src.data_loader import stream_airline_csv_to_minio
+
 
 logger = logging.getLogger(__name__)
 
 
 def train_and_store_model():
-    stream_airline_csv_to_minio()
     client = MinioClient()
     if not client.bucket_exists():
         raise RuntimeError("MinIO bucket does not exist.")
 
     csv_file = client.get_fileobj_in_memory(FILENAME)
-    if csv_file is None:
-        raise FileNotFoundError(f"{FILENAME} not found in bucket")
-
     df = pd.read_csv(csv_file)
-    df = df.drop_duplicates()
+    df = df.drop_duplicates().reset_index(drop=True)
     df.columns = df.columns.str.strip().str.lower()
-    logger.info(f"Columns in dataset: {df.columns.tolist()}")
 
     df = df.rename(
         columns={
-            "originairportid": "Origin",
-            "destairportid": "Dest",
+            "airport_1": "origin",
+            "airport_2": "dest",
+            "quarter": "month",
+            "fare": "fare",
         }
     )
 
-    raw_features = ["Origin", "Dest"]
-    missing = [c for c in raw_features if c not in df.columns]
-    if missing:
-        raise KeyError(f"Missing required columns in data for modeling: {missing}")
+    if "year" in df.columns:
+        df = df[df["year"] >= 2020]
 
-    X = df[raw_features]
-    y = df["average_fare"]
+    df = df[["origin", "dest", "month", "fare"]].dropna()
 
-    preprocessor = ColumnTransformer(
+    X = df[["origin", "dest", "month"]]
+    y = df["fare"]
+
+    preproc = ColumnTransformer(
         transformers=[
-            ("cat", OneHotEncoder(handle_unknown="ignore"), raw_features),
+            (
+                "ohe_airports",
+                OneHotEncoder(handle_unknown="ignore"),
+                ["origin", "dest"],
+            ),
         ],
-        remainder="drop",
+        remainder="passthrough",
     )
 
     pipeline = Pipeline(
-        steps=[
-            ("preproc", preprocessor),
-            ("model", RandomForestRegressor(random_state=42, n_jobs=-1)),
+        [
+            ("preproc", preproc),
+            ("rfr", RandomForestRegressor(random_state=42, n_jobs=-1)),
         ]
     )
 
@@ -76,8 +77,4 @@ def train_and_store_model():
     client.upload_fileobj(buf, MODEL_FILENAME)
     logger.info(f"Pipeline saved as {MODEL_FILENAME}")
 
-    return {
-        "model_filename": MODEL_FILENAME,
-        "mse": mse,
-        "r2": r2,
-    }
+    return {"model_filename": MODEL_FILENAME, "mse": mse, "r2": r2}
