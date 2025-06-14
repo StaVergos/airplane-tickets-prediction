@@ -1,13 +1,9 @@
 import dotenv
 
-import logging
 import os
 
 dotenv.load_dotenv()
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
 
 KAGGLE_USERNAME = os.getenv("KAGGLE_USERNAME")
 KAGGLE_KEY = os.getenv("KAGGLE_KEY")
@@ -23,8 +19,4 @@ DATASET_URL = (
     "https://www.kaggle.com/api/v1/datasets/download/"
     "bhavikjikadara/us-airline-flight-routes-and-fares-1993-2024"
     "?datasetVersionNumber=1"
-)
-
-logging.info(
-    f"Configuration loaded successfully with {'KAGGLE_USERNAME' if KAGGLE_USERNAME else 'KAGGLE_KEY' if KAGGLE_KEY else 'no credentials'}"
 )

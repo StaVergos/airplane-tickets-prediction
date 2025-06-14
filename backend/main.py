@@ -42,7 +42,6 @@ def predict_fare(features: FareFeatures):
     if model is None:
         raise HTTPException(status_code=503, detail="Model not loaded.")
 
-    # build DataFrame with exactly the three columns the pipeline expects:
     df = pd.DataFrame([features.dict()], columns=["origin", "dest", "month"])
 
     try:
