@@ -37,7 +37,7 @@ def stream_airline_csv_to_minio() -> str:
     df = pd.read_csv(io.BytesIO(csv_bytes), low_memory=False)
     df = df[df["Year"] >= 2020]
     unique_airports = sorted(df["airport_1"].unique())
-    airports_json = pd.Series(unique_airports).to_json()
+    airports_json = pd.Series(unique_airports).to_json(orient="values")
 
     client.upload_fileobj(
         io.BytesIO(airports_json.encode("utf-8")), "unique_airports.json"
