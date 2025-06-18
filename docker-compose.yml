@@ -5,6 +5,12 @@ services:
       - ./backend:/backend
     ports:
       - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthcheck"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
     depends_on:
       minio:
         condition: service_healthy
@@ -33,6 +39,8 @@ services:
       - frontend_node_modules:/app/node_modules 
     ports:
       - "3000:3000"
+    depends_on:
+      - backend
 
 volumes:
   minio-data:
