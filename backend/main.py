@@ -4,6 +4,7 @@ import logging
 import joblib
 import pandas as pd
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from src.config import MODEL_FILENAME
 from src.data_loader import stream_airline_csv_to_minio
@@ -13,6 +14,19 @@ from src.model_trainer import train_and_store_model
 logging.basicConfig(level=logging.INFO)
 client = MinioClient()
 app = FastAPI()
+origins = [
+    "*",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 model = None
 
 
@@ -25,8 +39,16 @@ class FareFeatures(BaseModel):
         json_schema_extra = {"example": {"origin": "JFK", "dest": "LAX", "month": 6}}
 
 
+class Airport(BaseModel):
+    airport: str
+    city: str
+
+    class Config:
+        json_schema_extra = {"example": {"airport": "JFK", "city": "New York"}}
+
+
 class Airports(BaseModel):
-    airports: list[str]
+    airports: list[Airport]
 
     class Config:
         json_schema_extra = {"example": {"airports": ["JFK", "LAX", "ORD", "DFW"]}}
@@ -42,9 +64,11 @@ def load_model():
     logging.info("Model pipeline loaded successfully.")
 
 
-@app.get("/")
-def root():
-    return {"status": "ok"}
+@app.get("/healthcheck")
+def health_check():
+    if model is None:
+        raise HTTPException(status_code=503, detail="Model not loaded.")
+    return {"status": "ok", "model_loaded": True}
 
 
 @app.post("/predict")
@@ -68,7 +92,6 @@ def get_airports():
         data = buf.read().decode("utf-8")
         if not data:
             raise HTTPException(status_code=404, detail="No airports data found.")
-        # parse the JSON array string into a Python list
         airports_list = json.loads(data)
         return {"airports": airports_list}
     except Exception as e:

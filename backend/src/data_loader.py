@@ -1,6 +1,7 @@
 import io
 import logging
 import zipfile
+import json
 
 import pandas as pd
 import requests
@@ -36,8 +37,10 @@ def stream_airline_csv_to_minio() -> str:
 
     df = pd.read_csv(io.BytesIO(csv_bytes), low_memory=False)
     df = df[df["Year"] >= 2020]
-    unique_airports = sorted(df["airport_1"].unique())
-    airports_json = pd.Series(unique_airports).to_json(orient="values")
+    df_airports = df[["airport_1", "city1"]].drop_duplicates().reset_index(drop=True)
+    df_airports.columns = ["airport", "city"]
+    df_airports = df_airports.sort_values(by="airport").reset_index(drop=True)
+    airports_json = df_airports.to_json(orient="records", indent=2)
 
     client.upload_fileobj(
         io.BytesIO(airports_json.encode("utf-8")), "unique_airports.json"
