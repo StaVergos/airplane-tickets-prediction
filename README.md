@@ -1,33 +1,35 @@
 # Airplane Tickets Prediction
 
-This project predicts airplane ticket prices using machine learning. It aims to help users estimate future ticket costs based on historical data and various features.
+Predict future airplane ticket prices using machine learning. This project helps users estimate ticket costs based on historical data and relevant features.
 
 ## Features
 
-- Data preprocessing and feature engineering
-- Model training and evaluation
-- Price prediction for new queries
+- Automated data preprocessing and feature engineering
+- Robust model training and evaluation pipeline
+- Real-time price prediction for user queries
 
-## Workflow
+## Getting Started
 
-![Workflow Diagram](docs/graph.png)
+### Prerequisites
 
-## Installation
+1. **Docker**: Ensure Docker is installed. [Installation Guide](https://www.docker.com/get-started/)
+2. **Kaggle API Key**: Download your Kaggle API key. [Instructions](https://www.kaggle.com/docs/api#:~:text=In%20order%20to%20use%20the%20Kaggle%E2%80%99s%20public%20API%2C%20you%20must%20first%20authenticate%20using%20an%20API%20token.%20Go%20to%20the%20%27Account%27%20tab%20of%20your%20user%20profile%20and%20select%20%27Create%20New%20Token%27.%20This%20will%20trigger%20the%20download%20of%20kaggle.json%2C%20a%20file%20containing%20your%20API%20credentials.)
+3. **Environment Variables**: Copy `.env.example` to `.env` in the `backend` directory and add your Kaggle credentials.
+
+### Installation
 
 ```bash
-git clone https://github.com/yourusername/airplane-tickets-prediction.git
+git clone git@github.com:StaVergos/airplane-tickets-prediction.git
 cd airplane-tickets-prediction
-pip install -r requirements.txt
 ```
 
-## Usage
+### Usage
 
-1. Download and install Docker.
-2. Build the docker image:
+1. **Build Docker images:**
     ```bash
     docker compose build --no-cache
     ```
-3. Run the images:
+2. **Start the services:**
     ```bash
     docker compose up -d
     ```
@@ -36,15 +38,20 @@ pip install -r requirements.txt
 
 ### Backend
 
-- `src/config` - Constants and secrets management
-- `src/model_trainer` - Source code for preprocessing, modeling, and prediction
-- `src/data_loader` - Handler of downloading dataset, transforming it and saving it into the store.
-- `src/minio` - Blob store service
-- `main` - FastAPI app and endpoints
+- `src/config/` — Configuration, constants, and secrets
+- `src/model_trainer/` — Data preprocessing, model training, and prediction logic
+- `src/data_loader/` — Dataset download, transformation, and storage
+- `src/minio/` — Blob storage integration
+- `main/` — FastAPI application and API endpoints
 
-## Contributing
+### Frontend
 
-Contributions are welcome! Please open issues or submit pull requests.
+- `src/App.tsx` — Main React application
+- `src/components/AirportDropdown.tsx` — Airport selection dropdown component
+
+## Workflow
+
+![Workflow Diagram](docs/graph.png)
 
 ## License
 
